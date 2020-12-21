@@ -57,14 +57,35 @@ func (u *user) readInput() {
 			u.commands <- command{
 				id:   CMD_ROOMS,
 				user: u,
-				args: input[1:],
 			}
 		case "/leave":
 			u.commands <- command{
 				id:   CMD_LEAVE,
 				user: u,
-				args: input[1:],
 			}
+		default:
+			u.printInputUsage()
 		}
 	}
+}
+
+func (u *user) printInputUsage() {
+	var usage = `Unknown command!
+
+Usage: <command> [args]
+
+/join [room_name]
+	Join a chat room. If a room doesn't exist a new one will be created.
+
+/name [display_name]
+	Set your display name.
+
+/rooms 
+	List all ongoing rooms.
+
+/leave 
+	Leave the chat room.
+	`
+
+	u.conn.Write([]byte(usage))
 }
