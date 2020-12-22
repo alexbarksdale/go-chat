@@ -32,6 +32,7 @@ func commandListener(s *server) {
 		case CMD_NAME:
 		case CMD_ROOMS:
 		case CMD_LEAVE:
+			cmd.leave(s)
 		}
 	}
 }
@@ -50,6 +51,8 @@ func (c *command) join(s *server, roomName string) {
 		s.rooms[roomName] = r
 	}
 
+	c.leave(s)
+
 	// Add user to the room
 	r.users[c.user.conn.RemoteAddr()] = c.user
 
@@ -57,4 +60,10 @@ func (c *command) join(s *server, roomName string) {
 	c.user.room = r
 
 	c.user.sendMsg(fmt.Sprintf("You joined the room: %s", r.name))
+}
+
+func (c *command) leave(s *server) {
+	if c.user.room != nil {
+		delete(s.rooms[c.user.room.name].users, c.user.conn.RemoteAddr())
+	}
 }
