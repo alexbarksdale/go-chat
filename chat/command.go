@@ -110,5 +110,6 @@ func (c *command) leaveRoom(rooms map[string]*room) {
 	if c.user.room != nil {
 		room := rooms[c.user.room.name]
 		delete(room.users, c.user.conn.RemoteAddr())
+		c.user.room.sendRoomMsg(fmt.Sprintf("👋 %s left the room.", c.user.name))
 	}
 }
