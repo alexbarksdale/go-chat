@@ -3,6 +3,7 @@ package chat
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 // cmdId represents a command.
@@ -32,6 +33,7 @@ func commandListener(s *server) {
 		case CMD_NAME:
 			cmd.setName()
 		case CMD_ROOMS:
+			cmd.listRooms(s.rooms)
 		case CMD_LEAVE:
 			cmd.leaveRoom(s)
 		}
@@ -68,6 +70,19 @@ func (c *command) join(s *server) {
 func (c *command) setName() {
 	c.user.name = c.args[0]
 	c.user.sendMsg(fmt.Sprintf("Your name was set to %s", c.user.name))
+}
+
+func (c *command) listRooms(rooms map[string]*room) {
+	output := make([]string, len(rooms))
+
+	// Since we know the size, this is faster than appending.
+	i := 0
+	for room := range rooms {
+		output[i] = room
+		i++
+	}
+
+	c.user.sendMsg(fmt.Sprintf("Available rooms: %s", strings.Join(output, ", ")))
 }
 
 // leaveRoom leaves a room.
