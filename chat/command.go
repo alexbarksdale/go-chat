@@ -48,7 +48,7 @@ func (c *command) join(s *server) {
 
 	r, exist := s.rooms[roomName]
 	if !exist {
-		newRoom := fmt.Sprintf("Room doesn't exist, creating a new room: %s\n", c.args[0])
+		newRoom := fmt.Sprintf("Room doesn't exist, creating a new room: %s\n", roomName)
 		c.user.sendMsg(newRoom)
 		r = &room{
 			name:  c.args[0],
@@ -66,6 +66,7 @@ func (c *command) join(s *server) {
 	// Assign the user's current room
 	c.user.room = r
 
+	c.user.room.sendRoomMsg(fmt.Sprintf("%s joined the room.", c.user.name))
 	c.user.sendMsg(fmt.Sprintf("You joined the room: %s\n", r.name))
 }
 
