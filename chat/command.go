@@ -32,10 +32,12 @@ func commandListener(s *server) {
 			cmd.join(s)
 		case CMD_NAME:
 			cmd.setName()
+		case CMD_MSG:
+			cmd.sendMsg(s.rooms)
 		case CMD_ROOMS:
 			cmd.listRooms(s.rooms)
 		case CMD_LEAVE:
-			cmd.leaveRoom(s)
+			cmd.leaveRoom(s.rooms)
 		}
 	}
 }
@@ -56,22 +58,40 @@ func (c *command) join(s *server) {
 		s.rooms[roomName] = r
 	}
 
-	c.leaveRoom(s)
+	c.leaveRoom(s.rooms)
 
 	// Add user to the room
 	r.users[c.user.conn.RemoteAddr()] = c.user
 
-	// Assign the command executer's room
+	// Assign the user's current room
 	c.user.room = r
 
-	c.user.sendMsg(fmt.Sprintf("You joined the room: %s", r.name))
+	c.user.sendMsg(fmt.Sprintf("You joined the room: %s\n", r.name))
 }
 
+// setName sets a custom display name.
 func (c *command) setName() {
 	c.user.name = c.args[0]
-	c.user.sendMsg(fmt.Sprintf("Your name was set to %s", c.user.name))
+	c.user.sendMsg(fmt.Sprintf("Your name was set to: %s\n", c.user.name))
 }
 
+// sendMsg sends a message to the current room.
+func (c *command) sendMsg(rooms map[string]*room) {
+	if c.user.room == nil {
+		c.user.sendMsg("You must join a room to send a message. View rooms with: /rooms")
+		return
+	}
+
+	if len(c.args) <= 0 {
+		c.user.sendMsg("Please provide a message.")
+		return
+	}
+
+	msg := fmt.Sprintf("%s: %s", c.user.name, strings.Join(c.args[0:], " "))
+	c.user.room.sendRoomMsg(msg)
+}
+
+// listRooms displays all available rooms to join.
 func (c *command) listRooms(rooms map[string]*room) {
 	output := make([]string, len(rooms))
 
@@ -86,9 +106,9 @@ func (c *command) listRooms(rooms map[string]*room) {
 }
 
 // leaveRoom leaves a room.
-func (c *command) leaveRoom(s *server) {
+func (c *command) leaveRoom(rooms map[string]*room) {
 	if c.user.room != nil {
-		room := s.rooms[c.user.room.name]
+		room := rooms[c.user.room.name]
 		delete(room.users, c.user.conn.RemoteAddr())
 	}
 }
