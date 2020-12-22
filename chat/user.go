@@ -36,6 +36,7 @@ func (u *user) readInput() {
 			fmt.Println("Failed to read input", err)
 			return
 		}
+		data = strings.Trim(data, "\r\n")
 
 		input := strings.Split(data, " ")
 		cmd := input[0]
@@ -53,6 +54,12 @@ func (u *user) readInput() {
 				user: u,
 				args: input[1:],
 			}
+		case "/msg":
+			u.commands <- command{
+				id:   CMD_MSG,
+				user: u,
+				args: input[1:],
+			}
 		case "/rooms":
 			u.commands <- command{
 				id:   CMD_ROOMS,
@@ -67,6 +74,10 @@ func (u *user) readInput() {
 			u.printInputUsage()
 		}
 	}
+}
+
+func (u *user) sendMsg(input string) {
+	u.conn.Write([]byte("> " + input + "\n"))
 }
 
 func (u *user) printInputUsage() {
@@ -87,5 +98,5 @@ Usage: <command> [args]
 	Leave the chat room.
 	`
 
-	u.conn.Write([]byte(usage))
+	u.sendMsg(usage)
 }

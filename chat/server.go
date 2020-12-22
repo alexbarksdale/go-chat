@@ -21,12 +21,15 @@ func CreateServer() *server {
 
 // Run starts the server.
 func (s *server) Run() {
-	l, err := net.Listen("tcp", ":8080")
+	l, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 
 	defer l.Close()
+
+	// Listen for commands executed on the server
+	go commandListener(s)
 
 	for {
 		conn, err := l.Accept()
