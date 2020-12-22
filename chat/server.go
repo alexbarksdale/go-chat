@@ -37,6 +37,6 @@ func (s *server) Run() {
 			log.Fatal("Unable to accept connection:", err)
 		}
 
-		go createUser(conn, s.commands)
+		go createUser(conn, s)
 	}
 }

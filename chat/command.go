@@ -28,17 +28,20 @@ func commandListener(s *server) {
 	for cmd := range s.commands {
 		switch cmd.id {
 		case CMD_JOIN:
-			cmd.join(s, cmd.args[0])
+			cmd.join(s)
 		case CMD_NAME:
+			cmd.setName()
 		case CMD_ROOMS:
 		case CMD_LEAVE:
-			cmd.leave(s)
+			cmd.leaveRoom(s)
 		}
 	}
 }
 
 // join handles joining or creating a new room if one doesn't exist.
-func (c *command) join(s *server, roomName string) {
+func (c *command) join(s *server) {
+	roomName := c.args[0]
+
 	r, exist := s.rooms[roomName]
 	if !exist {
 		newRoom := fmt.Sprintf("Room doesn't exist, creating a new room: %s\n", c.args[0])
@@ -51,7 +54,7 @@ func (c *command) join(s *server, roomName string) {
 		s.rooms[roomName] = r
 	}
 
-	c.leave(s)
+	c.leaveRoom(s)
 
 	// Add user to the room
 	r.users[c.user.conn.RemoteAddr()] = c.user
@@ -62,8 +65,15 @@ func (c *command) join(s *server, roomName string) {
 	c.user.sendMsg(fmt.Sprintf("You joined the room: %s", r.name))
 }
 
-func (c *command) leave(s *server) {
+func (c *command) setName() {
+	c.user.name = c.args[0]
+	c.user.sendMsg(fmt.Sprintf("Your name was set to %s", c.user.name))
+}
+
+// leaveRoom leaves a room.
+func (c *command) leaveRoom(s *server) {
 	if c.user.room != nil {
-		delete(s.rooms[c.user.room.name].users, c.user.conn.RemoteAddr())
+		room := s.rooms[c.user.room.name]
+		delete(room.users, c.user.conn.RemoteAddr())
 	}
 }

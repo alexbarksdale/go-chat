@@ -16,20 +16,20 @@ type user struct {
 }
 
 // createUser creates a new user.
-func createUser(conn net.Conn, cmds chan command) {
+func createUser(conn net.Conn, s *server) {
 	defer conn.Close()
 
 	u := &user{
 		conn:     conn,
 		name:     "Default",
-		commands: cmds,
+		commands: s.commands,
 	}
 
-	u.readInput()
+	u.readInput(s)
 }
 
 // readInput reads a user's input.
-func (u *user) readInput() {
+func (u *user) readInput(s *server) {
 	for {
 		data, err := bufio.NewReader(u.conn).ReadString('\n')
 		if err != nil {
